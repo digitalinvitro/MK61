@@ -37,7 +37,13 @@ byte     TIP;
 #define       MK61_MUL      0x12
 #define       MK61_DIV      0x13
 #define       MK61_XY       0x14
+#define       MK61_10POWX   0x15
+#define       MK61_EXPX     0x16
+#define       MK61_LNX      0x17
+#define       MK61_LGX      0x18
+#define       MK61_SQRTX    0x21
 #define       MK61_SQRX     0x22
+#define       MK61_REVX     0x23
 
 #define  AUTO  0
 #define  PRG   1
@@ -246,14 +252,39 @@ register byte address;
             X = Y;
             Y = temp;
            break;
+    case MK61_LNX:
+/* Натуральный логарифм X [ Ln(X) ] */    
+            X = log(X);
+           break;
+    case MK61_LGX:
+/* Десятичный логарифм X [ Lg(X) ] */    
+            X = log10(X);
+           break;
+
     case 0x20:
 /* Вввод константы Пи в X   [ Pi ] */
             if( convert_xbuff() ) push();
             X = 3.1415926;
            break;
+    case MK61_10POWX:
+/* Возведение 10 в X   [ F10^X ] */
+            X = pow(10,X);
+           break;
+    case MK61_EXPX:
+/* Возведение E в X   [ Fe^X ] */
+            X = exp(X);
+           break;
+    case MK61_SQRTX:
+/* Корень из X   [ sqrt(X) ] */
+            X = sqrt(X);
+           break;
     case MK61_SQRX:
 /* Возведение в квадрат   [ X^2 ] */
             X = X * X;
+           break;
+    case MK61_REVX:
+/* деление 1 на X   [ sqrt(X) ] */
+            X = 1/X;
            break;
     case 0x40:
     case 0x41:
@@ -748,8 +779,26 @@ void PressKey(uint16_t kbd_code){
       case 0x0200|251:
         execute(6);
         break;
+      case (SHIFT_F << 11)  | 223: /* F10^X */
+        execute(MK61_10POWX);
+        break;
+      case (SHIFT_F << 11)  | 0x0100 | 239: /* FlgX */
+        execute(MK61_LGX);
+        break;
+      case (SHIFT_F << 11)  | 0x0200 | 239: /* FlnX */
+        execute(MK61_LNX);
+        break;
+      case (SHIFT_F << 11)  | 239: /* Fe^X */
+        execute(MK61_EXPX);
+        break;
       case (SHIFT_F << 11)  | 0x0400 | 251: /* FX^2 */
         execute(MK61_SQRX);
+        break;
+      case (SHIFT_F << 11)  | 0x0400 | 247: /* Fsqrt(X) */
+        execute(MK61_REVX);
+        break;
+      case (SHIFT_F << 11)  | 0x0300 | 247: /* Fsqrt(X) */
+        execute(MK61_SQRTX);
         break;
         
 /* ==== Shift pressed and released ===  */
